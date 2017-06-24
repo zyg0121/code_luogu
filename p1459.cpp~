@@ -1,0 +1,26 @@
+#include<iostream>
+#include<cstdio>
+#include<cstdlib>
+#include<cstring>
+using namespace std;
+int a[1010],s[5],p[5];        //a存储数字,s存储出现的次数,p存储不要交换的数字 
+int main(){
+    int i,j,k,m,n;
+    scanf("%d",&n);
+    for(i=1;i<=n;i++){
+        scanf("%d",&a[i]);
+        s[a[i]]++;
+    }
+                                     
+    for(i=1;i<=s[1];i++){
+        if(a[i]==1)p[1]++;
+        if(a[i]==3)p[4]++;         
+    }
+    for(i=n;i>=n-s[3]+1;i--){
+        if(a[i]==3)p[3]++;
+        if(a[i]==1)p[5]++;         
+    }
+    int ans=(s[1]-p[1])+(s[3]-p[3])-min(p[4],p[5]) 
+    printf("%d",ans);
+    return 0;
+}

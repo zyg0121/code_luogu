@@ -1,0 +1,9 @@
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+int n;
+
+inline int dfs(int a,int b,int c,int d) {
+    int midx=a+c,midy=b+d;
+    if(midy>n) 

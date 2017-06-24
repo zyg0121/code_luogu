@@ -1,0 +1,217 @@
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <iostream>
+using namespace std;
+
+const int maxx = 100000+10;
+const int INF = 2147483467;
+
+class Splay {
+    #define root e[0].ch[1]
+private:
+    class node {
+    public :
+	int v,father;
+	int ch[2];
+	int sum;
+	int recy;
+    };
+    node e[maxx];
+    int n,points;
+    void update(int x) {
+	e[x].sum=e[e[x].ch[0]].sum+e[e[x].ch[1]].sum+e[x].recy;
+    }
+    int identify(int x) {
+	return e[e[x].father].ch[0]==x?0:1;
+    }
+    void connect(int x,int f,int son) {
+	e[x].father=f;
+	e[f].ch[son]=x;
+    }
+    void rotate(int x) {
+	int y=e[x].father;
+	int mroot=e[y].father;
+	int mrootson=identify(y);
+	int yson=identify(x);
+	int B=e[x].ch[yson^1];
+	connect(B,y,yson);connect(y,x,(yson^1));connect(x,mroot,mrootson);
+	update(y);update(x);
+    }
+    void splay(int at,int to) {
+	to=e[to].father;
+	while(e[at].father!=to) {
+	    int up=e[at].father;
+	    if(e[up].father==to) rotate(at);
+	    else if(identify(up)==identify(at)) {
+		rotate(up);
+		rotate(at);
+	    }
+	    else {
+		rotate(at);
+		rotate(at);
+	    }
+	}
+    }
+    int crepoint(int v,int father) {
+	n++;
+	e[n].v=v;
+	e[n].father=father;
+	e[n].sum=e[n].recy=1;
+	return n;
+    }
+    void destory(int x) {
+	e[x].v=e[x].ch[0]=e[x].ch[1]=e[x].sum=e[x].father=e[x].recy=0;
+	if(x==n) n--;
+    }
+public:
+    int getroot(){
+	return root;
+    }
+    int find(int v) {
+	int now=root;
+	while(true) {
+	    if(e[now].v==v) {
+		splay(now,root);
+		return now;
+	    }
+	    int nxt = v<e[now].v?0:1;
+	    if(!e[now].ch[nxt]) return 0;
+	    now=e[now].ch[nxt];
+	}
+    }
+    int build(int v) {
+	points++;
+	if(n==0) {
+	    root=1;
+	    crepoint(v,0);
+	}
+	else {
+	    int now = root;
+	    while(true) {
+		e[now].sum++;
+		if(v==e[now].v) {
+		    e[now].recy++;
+		    return now;
+		}
+		int nxt = v<e[now].v?0:1;
+		if(!e[now].ch[nxt]) {
+		    crepoint(v,now);
+		    e[now].ch[nxt]=n;
+		    return n;
+		}
+		now=e[now].ch[nxt];
+	    }
+	}
+	return 0;
+    }
+    void push(int v) {
+	int add=build(v);
+	splay(add,root);
+    }
+    void pop(int v) {
+	int deal=find(v);
+	if(!deal) return ;
+	points--;
+	if(e[deal].recy>1) {
+	    e[deal].recy--;
+	    e[deal].sum--;
+	    return ;
+	}
+	if(!e[deal].ch[0]) {
+	    root=e[deal].ch[1];
+	    e[root].father=0;
+	}
+	else {
+	    int lef=e[deal].ch[0];
+	    while(e[lef].ch[1]) lef=e[lef].ch[1];
+	    splay(lef,e[deal].ch[1]);
+	    int rig=e[deal].ch[1];
+	    connect(rig,lef,1);connect(lef,0,1);
+	    update(lef);
+	}
+	destory(deal);
+    }
+    int rank(int v) {
+	int ans = 0,now=root;
+	while(true) {
+	    if(e[now].v==v) return ans+e[e[now].ch[0]].sum+1;
+	    if(now==0) return 0;
+	    if(v<e[now].v) now=e[now].ch[0];
+	    else {
+		ans=ans+e[e[now].ch[0]].sum+e[now].recy;
+		now=e[now].ch[1];
+	    }
+	}
+	if(now) splay(now,root);
+	return 0;
+    }
+    int atrank(int x) {
+	if(x>points) return -INF;
+	int now=root;
+	while(true) {
+	    int minused=e[now].sum-e[e[now].ch[1]].sum;
+	    if(x>e[e[now].ch[0]].sum and x<=minused) break;
+	    if(x<minused) now=e[now].ch[0];
+	    else {
+		x=x-minused;
+		now=e[now].ch[1];
+	    }
+	}
+	splay(now,root);
+	return e[now].v;
+    }
+    int upper(int v){
+	int now=root;
+	int result=INF;
+	while(now) {
+	    if(e[now].v>v&&e[now].v<result) result=e[now].v;
+	    if(v<e[now].v) now=e[now].ch[0];
+	    else now=e[now].ch[1];
+	}
+	return result;
+    }
+    int lower(int v) {
+	int now=root;
+	int result=-INF;
+	while(now) {
+	    if(e[now].v<v and e[now].v>result) result=e[now].v;
+	    if(v>e[now].v) now=e[now].ch[1];
+	    else now=e[now].ch[0];
+	}
+	return result;
+    }
+    #undef root
+};
+
+Splay F;
+int main() {
+    int n,opt,x;  
+    scanf("%d",&n);  
+    for (int i=1;i<=n;++i)
+    {  
+        scanf("%d%d",&opt,&x);  
+        switch(opt)
+        {  
+            case 1:
+                F.push(x);
+                break;
+            case 2:
+                F.pop(x);
+                break;
+            case 3:
+		printf("%d\n",F.rank(x));
+                break;
+            case 4:
+		printf("%d\n",F.atrank(x));
+                break;
+            case 5:
+		printf("%d\n",F.lower(x));
+                break;
+            case 6:
+		printf("%d\n",F.upper(x));
+                break;
+        }  
+    }
+    return 0;
+}

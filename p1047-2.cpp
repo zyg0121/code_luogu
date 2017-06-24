@@ -1,0 +1,63 @@
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+#define lson l,m,rt<<1
+#define rson m+1,r,rt<<1|1
+
+typedef long long LL;
+
+const int INF = 0x3f3f3f3f;
+const int maxn = 1e5+10;
+
+int T,n,m;
+int Left[maxn<<2],Right[maxn<<2];
+
+void Init(){
+	memset(Left,0,sizeof(Left));
+	memset(Right,0,sizeof(Right));
+}
+
+void PushUp(int rt){
+	Left[rt]=Left[rt<<1]+Left[rt<<1|1];
+	Right[rt]=Right[rt<<1]+Right[rt<<1|1];
+}
+
+void Update(int rt,int l,int r,int pos,bool flag){
+	if(l==r){
+		if(!flag) Left[rt]++;
+		else Right[rt]++;
+		return ;
+	}
+	int mid=(l+r)>>1;
+	if(pos<=mid) Update(lson,pos,flag);
+	else Update(rson,pos,flag);
+	PushUp(rt);
+}
+
+int Query(int rt,int l,int r,int L,int R,bool flag){
+	if(L<=l&&r<=R){
+		if(!flag) return Left[rt];
+		else return Right[rt];
+	}
+	int mid=(l+r)>>1;
+	int res=0;
+	if(L<=mid) res+=Query(lson,L,R,flag);
+	if(R>mid) res+=Query(rson,L,R,flag);
+	return res;
+}
+
+int main() {
+	scanf("%d%d",&n,&m);
+	int a,b;
+	while(m--){
+		scanf("%d%d",&a,&b);
+	   	Update(1,1,n,a,false);
+	   	Update(1,1,n,b,true);
+	}
+	int l,r;
+	l=Query(1,1,n,1,b,true);
+	if(a==1) r=0;
+	else r=Query(1,1,n,1,a-1,false);
+	printf("%d\n",l-r);
+}
